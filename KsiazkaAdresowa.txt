@@ -1,0 +1,6 @@
+1|2|Adam|Kaczmarek|333 555 777|adam@kaczmarek.pl|Piotrkow|
+2|2|Anna|Kowalska|111 222 555|anna@kowalska.pl|Wieliczka|
+3|1|Maciej|Kowalski|999 999 999|maciej@kowalski.pl|Wieliczka|
+4|1|Tymon|Krawczyk|333 444 222|tymon@krawczyk.pl|Poznan|
+5|2|Sandra|Michalska|444 333 222|sandzia@michalskak.pl|Sosnowiec|
+6|1|Marcin|Glowacki|333 444 222|marcin@glowacki.pl|Warszawa|
