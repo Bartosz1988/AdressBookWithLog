@@ -60,13 +60,7 @@ void wczytajUzytkownikowZPliku(vector <Uzytkownik> &uzytkownicy)
     fstream plikTekstowy;
     plikTekstowy.open("ListaUzytkownikow.txt", ios::in);
 
-    if (plikTekstowy.good()==false)
-    {
-        ofstream plikTekstowy("ListaUzytkownikow.txt");
-        plikTekstowy.close();
-    }
-
-    else if (plikTekstowy.good() == true)
+    if (plikTekstowy.good() == true)
     {
         while (getline(plikTekstowy, daneUzytkownikaZPliku))
         {
@@ -207,6 +201,7 @@ Kontakt pobierzDaneKontaktowe(string daneAdresataZPliku)
     return kontakt;
 }
 
+// funkcja nie jest wykorzystywana
 void wczytajKontaktyZPliku(vector <Kontakt> &listaKontaktow)
 {
     Kontakt kontakt;
@@ -228,6 +223,34 @@ void wczytajKontaktyZPliku(vector <Kontakt> &listaKontaktow)
             kontakt = pobierzDaneKontaktowe(daneAdresataZPliku);
 
             listaKontaktow.push_back(kontakt);
+        }
+        plikTekstowy.close();
+    }
+}
+
+void wczytajKontaktyZalogowanegoUzytkownika(vector <Kontakt> &kontaktyZalogowanego, int idZalogowanego)
+{
+    Kontakt kontakt;
+    string daneAdresataZPliku = "";
+
+    fstream plikTekstowy;
+    plikTekstowy.open("KsiazkaAdresowa.txt", ios::in);
+
+    if (plikTekstowy.good()==false)
+    {
+        ofstream plikTekstowy("KsiazkaAdresowa.txt");
+        plikTekstowy.close();
+    }
+
+    else if (plikTekstowy.good() == true)
+    {
+        while (getline(plikTekstowy, daneAdresataZPliku))
+        {
+            kontakt = pobierzDaneKontaktowe(daneAdresataZPliku);
+            if(kontakt.idUzytkownika == idZalogowanego)
+            {
+                kontaktyZalogowanego.push_back(kontakt);
+            }
         }
         plikTekstowy.close();
     }
@@ -319,7 +342,7 @@ void szukajPoImieniu(vector <Kontakt> &listaKontakow, int zalogowanyID)
     if (znalezioneImiona.empty())
     {
         cout << "Nie masz kontaktow o tym imieniu" << endl;
-        Sleep(4000);
+        Sleep(2500);
     }
 }
 
@@ -346,8 +369,8 @@ void szukajPoNazwisku(vector <Kontakt> &listaKontakow, int zalogowanyID)
     }
     if (znalezioneNazwiska.empty())
     {
-        cout << "Nie masz kontaktow o tym imieniu" << endl;
-        Sleep(4000);
+        cout << "Nie masz kontaktow o tym nazwisku" << endl;
+        Sleep(2500);
     }
 }
 
@@ -496,7 +519,7 @@ void edycjaDanychOsobowych(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
                 break;
             }
             cout << endl << "Dane zostaly poprawnie zmienione";
-            Sleep(2000);
+            system("pause");
         }
     }
     ofstream plik("KsiazkaAdresowa.txt");
@@ -568,7 +591,7 @@ int main()
     int iloscKontaktow = 0;
 
     wczytajUzytkownikowZPliku(uzytkownicy);
-    wczytajKontaktyZPliku(listaKontaktow);
+    //wczytajKontaktyZPliku(listaKontaktow);
 
     while (1)
     {
@@ -599,6 +622,10 @@ int main()
         }
         else
         {
+            if(listaKontaktow.empty() == true)
+            {
+                wczytajKontaktyZalogowanegoUzytkownika(listaKontaktow, idZalogowanegoUzytkownika);
+            }
             system("cls");
             cout << ">>> KSIAZKA ADRESOWA <<<" << endl << endl;
             cout << "1. Dodaj nowy kontakt" << endl;
@@ -652,7 +679,6 @@ int main()
                 break;
             }
         }
-
     }
 
     return 0;
