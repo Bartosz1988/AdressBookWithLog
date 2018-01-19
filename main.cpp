@@ -201,9 +201,9 @@ Kontakt pobierzDaneKontaktowe(string daneAdresataZPliku)
     return kontakt;
 }
 
-// funkcja nie jest wykorzystywana
-void wczytajKontaktyZPliku(vector <Kontakt> &listaKontaktow)
+int wczytajKontaktyZalogowanegoUzytkownika(vector <Kontakt> &kontaktyZalogowanego, int idZalogowanego)
 {
+    int idOstatniegoAresata = 0;
     Kontakt kontakt;
     string daneAdresataZPliku = "";
 
@@ -220,40 +220,31 @@ void wczytajKontaktyZPliku(vector <Kontakt> &listaKontaktow)
     {
         while (getline(plikTekstowy, daneAdresataZPliku))
         {
-            kontakt = pobierzDaneKontaktowe(daneAdresataZPliku);
+            string pierwszaDanaAdresata = "";
+            for (int pozycjaZnaku = 0; pozycjaZnaku < daneAdresataZPliku.length(); pozycjaZnaku++)
+            {
+                if (daneAdresataZPliku[pozycjaZnaku] != '|')
+                {
+                    pierwszaDanaAdresata += daneAdresataZPliku[pozycjaZnaku];
 
-            listaKontaktow.push_back(kontakt);
-        }
-        plikTekstowy.close();
-    }
-}
+                }
+                else
+                    break;
+            }
+            idOstatniegoAresata = atoi(pierwszaDanaAdresata.c_str());
+            //cout << idOstatniegoAresata << endl;
+            //system("pause");
 
-void wczytajKontaktyZalogowanegoUzytkownika(vector <Kontakt> &kontaktyZalogowanego, int idZalogowanego)
-{
-    Kontakt kontakt;
-    string daneAdresataZPliku = "";
-
-    fstream plikTekstowy;
-    plikTekstowy.open("KsiazkaAdresowa.txt", ios::in);
-
-    if (plikTekstowy.good()==false)
-    {
-        ofstream plikTekstowy("KsiazkaAdresowa.txt");
-        plikTekstowy.close();
-    }
-
-    else if (plikTekstowy.good() == true)
-    {
-        while (getline(plikTekstowy, daneAdresataZPliku))
-        {
             kontakt = pobierzDaneKontaktowe(daneAdresataZPliku);
             if(kontakt.idUzytkownika == idZalogowanego)
             {
                 kontaktyZalogowanego.push_back(kontakt);
             }
         }
+
         plikTekstowy.close();
     }
+    return idOstatniegoAresata;
 }
 
 void dopiszKontaktDoPliku(Kontakt daneOsoby)
@@ -276,21 +267,64 @@ void dopiszKontaktDoPliku(Kontakt daneOsoby)
     else cout << "Nie mozna otworzyc pliku" << endl;
 }
 
+int podajIdOstatniegoAdresata()
+{
+    int idOstatniegoAresata = 0;
+    string daneAdresataZPliku = "";
+
+    fstream plikTekstowy;
+    plikTekstowy.open("KsiazkaAdresowa.txt", ios::in);
+
+    if (plikTekstowy.good()==false)
+    {
+        ofstream plikTekstowy("KsiazkaAdresowa.txt");
+        plikTekstowy.close();
+    }
+
+    else if (plikTekstowy.good() == true)
+    {
+        while (getline(plikTekstowy, daneAdresataZPliku))
+        {
+            string pierwszaDanaAdresata = "";
+            for (int pozycjaZnaku = 0; pozycjaZnaku < daneAdresataZPliku.length(); pozycjaZnaku++)
+            {
+                if (daneAdresataZPliku[pozycjaZnaku] != '|')
+                {
+                    pierwszaDanaAdresata += daneAdresataZPliku[pozycjaZnaku];
+
+                }
+                else
+                    break;
+            }
+            idOstatniegoAresata = atoi(pierwszaDanaAdresata.c_str());
+        }
+
+        plikTekstowy.close();
+    }
+    return idOstatniegoAresata;
+}
+
 void dodajAdresata(vector <Kontakt> &adresaci, int idZalogowanegoUzytkownika)
 {
+    string linia;
+    int iloscLinii = 0;
+    int idOstatniegoAdresata = podajIdOstatniegoAdresata();
+
+    ifstream plik;
+    plik.open("KsiazkaAdresowa.txt");
+
+    while(getline(plik, linia))
+    {
+        iloscLinii++;
+    }
+    plik.close();
+
     Kontakt kontakt;
 
     system("cls");
     cout << ">>> DODAWANIE NOWEGO ADRESATA <<<" << endl << endl;
 
-    if (adresaci.empty() == true)
-    {
-        kontakt.id = 1;
-    }
-    else
-    {
-        kontakt.id = adresaci.back().id + 1;
-    }
+    kontakt.id = idOstatniegoAdresata+1;
 
     kontakt.idUzytkownika = idZalogowanegoUzytkownika;
 
@@ -402,16 +436,9 @@ void wyswietlImionaNazwiska(vector <Kontakt> &wszystkieKontakty, int zalogowanyI
     }
 }
 
-void aktualizacjaID(vector<Kontakt> &wszystkieKontakty)
+Kontakt usuwanieKontaktu(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
 {
-    for(int i=0; i<wszystkieKontakty.size(); i++)
-    {
-        wszystkieKontakty[i].id = i+1;
-    }
-}
-
-void usuwanieKontaktu(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
-{
+    Kontakt usuwanyKontakt;
     char potwierdzenie;
     int numerKontaktuDoUsuniecia;
 
@@ -425,6 +452,7 @@ void usuwanieKontaktu(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
     {
         if(numerKontaktuDoUsuniecia == wszystkieKontakty[licznik].id)
         {
+            usuwanyKontakt = wszystkieKontakty[licznik];
             cout << endl << "Czy na pewno chcesz usunac kontakt: " << wszystkieKontakty[licznik].imie << " " <<wszystkieKontakty[licznik].nazwisko << "? [y/n]";
             cin >> potwierdzenie;
             if(potwierdzenie == 'y')
@@ -433,26 +461,70 @@ void usuwanieKontaktu(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
                 cout << wszystkieKontakty[licznik].nazwisko << " zostal usuniety z ksiazki adresowej" << endl;
                 wszystkieKontakty.erase(wszystkieKontakty.begin()+licznik);
                 system("pause");
+                wszystkieKontakty[licznik] = usuwanyKontakt;
             }
         }
     }
-    aktualizacjaID(wszystkieKontakty);
-    ofstream plik("KsiazkaAdresowa.txt");
-    plik << "";
-    for(int i=0; i<wszystkieKontakty.size(); i++)
-    {
-        dopiszKontaktDoPliku(wszystkieKontakty[i]);
-    }
+    return usuwanyKontakt;
 }
 
-void edycjaDanychOsobowych(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
+/////////////////////////////////////
+// ZAPIS DO PLIKU TXT ///////////////
+/////////////////////////////////////
+void zapisPoUsunieciuDoPliku(Kontakt usuwanyKontakt)
 {
+    string liniaDoUsuniecia;
+    string linia;
+    int idKontaktuDoUsuniecia = 0;
+
+    ifstream plik;
+    plik.open("KsiazkaAdresowa.txt");
+    ofstream temp;
+    temp.open("temp.txt");
+
+    while (getline(plik, linia))
+    {
+        string pierwszaDanaAdresata = "";
+        for (int pozycjaZnaku = 0; pozycjaZnaku < linia.length(); pozycjaZnaku++)
+        {
+            if (linia[pozycjaZnaku] != '|')
+            {
+                pierwszaDanaAdresata += linia[pozycjaZnaku];
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        idKontaktuDoUsuniecia = atoi(pierwszaDanaAdresata.c_str());
+
+        if (usuwanyKontakt.id == idKontaktuDoUsuniecia)
+        {
+            linia.replace(linia.find(liniaDoUsuniecia),liniaDoUsuniecia.length(),"");
+            //temp << linia << endl;
+        }
+        else if(usuwanyKontakt.id != idKontaktuDoUsuniecia)
+        {
+            temp << linia << endl;
+        }
+        pierwszaDanaAdresata = "";
+    }
+    temp.close();
+    plik.close();
+    remove("KsiazkaAdresowa.txt");
+    rename("temp.txt","KsiazkaAdresowa.txt");
+}
+
+
+Kontakt edycjaDanychOsobowych(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
+{
+    Kontakt edytowanyKontakt;
     int numerKontaktuDoEdycji;
-    int numerAtrybutu = 0;
+    int numerAtrybutu;
 
     cout << "Wybierz z listy numer osoby, ktorej dane chcesz edystowac" << '\n' << '\n';
     wyswietlImionaNazwiska(wszystkieKontakty, zalogowanyID);
-    //system("pause");
 
     cout << endl << "podaj numer: ";
     cin >> numerKontaktuDoEdycji;
@@ -461,6 +533,7 @@ void edycjaDanychOsobowych(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
     {
         if(numerKontaktuDoEdycji == wszystkieKontakty[i].id)
         {
+            edytowanyKontakt = wszystkieKontakty[i];
             system("cls");
 
             cout << "Wybierz ktory z atrybutow wybranej osoby chcesz edytowac" << endl << endl;
@@ -474,60 +547,125 @@ void edycjaDanychOsobowych(vector<Kontakt> &wszystkieKontakty, int zalogowanyID)
             cout << "podaj numer atrybutu: ";
             cin >> numerAtrybutu;
 
-            if(numerAtrybutu == 1)
+            switch(numerAtrybutu)
+            {
+            case 1:
             {
                 string noweImie = "";
                 cout << "Podaj nowe imie: ";
                 cin.sync();
                 getline(cin, noweImie);
-                wszystkieKontakty[i].imie = noweImie;
+                edytowanyKontakt.imie = noweImie;
+                break;
             }
-            else if(numerAtrybutu == 2)
+
+            case 2:
             {
                 string noweNazwisko = "";
                 cout << "Podaj nowe nazwisko: ";
                 cin.sync();
                 getline(cin, noweNazwisko);
-                wszystkieKontakty[i].nazwisko = noweNazwisko;
+                edytowanyKontakt.nazwisko = noweNazwisko;
+                break;
             }
-            else if(numerAtrybutu == 3)
+
+            case 3:
             {
                 string nowyTel = "";
                 cout << "Podaj nowy numer tel: ";
                 cin.sync();
                 getline(cin, nowyTel);
-                wszystkieKontakty[i].nr_tel = nowyTel;
+                edytowanyKontakt.nr_tel = nowyTel;
+                break;
             }
-            else if(numerAtrybutu == 4)
+
+            case 4:
             {
                 string nowyEmail = "";
                 cout << "Podaj nowy email: ";
                 cin.sync();
                 getline(cin, nowyEmail);
-                wszystkieKontakty[i].email = nowyEmail;
+                edytowanyKontakt.email = nowyEmail;
+                break;
             }
-            else if(numerAtrybutu == 5)
+
+            case 5:
             {
                 string nowyAdres = "";
                 cout << "Podaj nowy adres: ";
                 cin.sync();
                 getline(cin, nowyAdres);
-                wszystkieKontakty[i].adres = nowyAdres;
+                edytowanyKontakt.adres = nowyAdres;
+                break;
             }
-            else if(numerAtrybutu == 6)
+
+            case 6:
+                break;
+            }
+            if((numerAtrybutu > 0) && (numerAtrybutu < 6))
+            {
+                cout << endl << "Dane zostaly poprawnie zmienione" << endl;
+                system("pause");
+            }
+            wszystkieKontakty[i] = edytowanyKontakt;
+        }
+    }
+    return edytowanyKontakt;
+}
+
+/////////////////////////////////////
+// ZAPIS DO PLIKU TXT ///////////////
+/////////////////////////////////////
+void zapisEdycjiDoPliku(Kontakt edytowanyKontakt)
+{
+    string liniaDoEdycji;
+    string linia;
+    int idKontaktu = 0;
+    int numerLinii;
+
+    ifstream plik;
+    plik.open("KsiazkaAdresowa.txt");
+    ofstream temp;
+    temp.open("temp.txt");
+
+    while (getline(plik, linia))
+    {
+        string pierwszaDanaAdresata = "";
+        for (int pozycjaZnaku = 0; pozycjaZnaku < linia.length(); pozycjaZnaku++)
+        {
+            if (linia[pozycjaZnaku] != '|')
+            {
+                pierwszaDanaAdresata += linia[pozycjaZnaku];
+            }
+            else
             {
                 break;
             }
-            cout << endl << "Dane zostaly poprawnie zmienione";
-            system("pause");
         }
+
+        idKontaktu = atoi(pierwszaDanaAdresata.c_str());
+
+        if (edytowanyKontakt.id == idKontaktu)
+        {
+            linia.replace(linia.find(liniaDoEdycji),liniaDoEdycji.length(),"");
+            temp << edytowanyKontakt.id << '|';
+            temp << edytowanyKontakt.idUzytkownika << '|';
+            temp << edytowanyKontakt.imie << '|';
+            temp << edytowanyKontakt.nazwisko << '|';
+            temp << edytowanyKontakt.nr_tel << '|';
+            temp << edytowanyKontakt.email << '|';
+            temp << edytowanyKontakt.adres << '|' << endl;
+        }
+        else if(edytowanyKontakt.id != idKontaktu)
+        {
+            temp << linia << endl;
+        }
+        pierwszaDanaAdresata = "";
     }
-    ofstream plik("KsiazkaAdresowa.txt");
-    plik << "";
-    for(int i=0; i<wszystkieKontakty.size(); i++)
-    {
-        dopiszKontaktDoPliku(wszystkieKontakty[i]);
-    }
+    temp.close();
+    plik.close();
+    remove("KsiazkaAdresowa.txt");
+    rename("temp.txt","KsiazkaAdresowa.txt");
 }
 
 void aktualizacjaUzytkownikaDoPliku(Uzytkownik uzytkownik)
@@ -585,13 +723,15 @@ int main()
 {
     vector <Uzytkownik> uzytkownicy;
     vector <Kontakt> listaKontaktow;
+
     Kontakt osoba;
+
     char wybor;
     int idZalogowanegoUzytkownika=0;
     int iloscKontaktow = 0;
+    int idOstatniegoAdresata;
 
     wczytajUzytkownikowZPliku(uzytkownicy);
-    //wczytajKontaktyZPliku(listaKontaktow);
 
     while (1)
     {
@@ -624,7 +764,7 @@ int main()
         {
             if(listaKontaktow.empty() == true)
             {
-                wczytajKontaktyZalogowanegoUzytkownika(listaKontaktow, idZalogowanegoUzytkownika);
+                idOstatniegoAdresata = wczytajKontaktyZalogowanegoUzytkownika(listaKontaktow, idZalogowanegoUzytkownika);
             }
             system("cls");
             cout << ">>> KSIAZKA ADRESOWA <<<" << endl << endl;
@@ -661,11 +801,15 @@ int main()
                 break;
             case '5':
                 system("cls");
-                edycjaDanychOsobowych(listaKontaktow, idZalogowanegoUzytkownika);
+                osoba = edycjaDanychOsobowych(listaKontaktow, idZalogowanegoUzytkownika);
+                zapisEdycjiDoPliku(osoba);
                 break;
             case '6':
                 system("cls");
-                usuwanieKontaktu(listaKontaktow, idZalogowanegoUzytkownika);
+                osoba = usuwanieKontaktu(listaKontaktow, idZalogowanegoUzytkownika);
+                zapisPoUsunieciuDoPliku(osoba);
+                listaKontaktow.clear();
+                idOstatniegoAdresata = wczytajKontaktyZalogowanegoUzytkownika(listaKontaktow, idZalogowanegoUzytkownika);
                 break;
             case '7':
                 system("cls");
@@ -673,6 +817,7 @@ int main()
                 break;
             case '8':
                 idZalogowanegoUzytkownika=0;
+                listaKontaktow.clear();
                 break;
             case '9':
                 zakonczProgram();
